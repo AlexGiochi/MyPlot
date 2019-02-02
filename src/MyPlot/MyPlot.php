@@ -24,6 +24,7 @@ use pocketmine\level\Level;
 use pocketmine\level\Position;
 use pocketmine\math\AxisAlignedBB;
 use pocketmine\permission\Permission;
+use pocketmine\permission\PermissionManager;
 use pocketmine\Player;
 use pocketmine\plugin\PluginBase;
 use pocketmine\utils\Config;
@@ -464,23 +465,13 @@ class MyPlot extends PluginBase
 		$level = $this->getServer()->getLevelByName($plot->levelName);
 		$pos = $this->getPlotPosition($plot);
 		$plotSize = $plotLevel->plotSize;
-		$xMax = $pos->x + $plotSize;
-		$zMax = $pos->z + $plotSize;
-		$chunkIndexes = [];
-		for($x = $pos->x; $x < $xMax; $x++) {
-			for($z = $pos->z; $z < $zMax; $z++) {
-				$index = Level::chunkHash($x >> 4, $z >> 4);
-				if(!in_array($index, $chunkIndexes)) {
-					$chunkIndexes[] = $index;
-				}
-				Level::getXZ($index, $pos->x, $pos->z);
-			}
-		}
+		$xMax = ($pos->x + $plotSize) >> 4;
+		$zMax = ($pos->z + $plotSize) >> 4;
 		$chunks = [];
-		foreach($chunkIndexes as $index) {
-			Level::getXZ($index, $plot->X, $plot->Z);
-			$chunk = $level->getChunk($plot->X, $plot->Z, true);
-			$chunks[] = $chunk;
+		for($x = $pos->x >> 4; $x < $xMax; $x++) {
+			for($z = $pos->z >> 4; $z < $zMax; $z++) {
+				$chunks[] = $level->getChunk($x, $z, true);
+			}
 		}
 		return $chunks;
 	}
@@ -498,7 +489,7 @@ class MyPlot extends PluginBase
 		if($player->hasPermission("myplot.claimplots.unlimited"))
 			return PHP_INT_MAX;
 		/** @var Permission[] $perms */
-		$perms = array_merge($this->getServer()->getPluginManager()->getDefaultPermissions($player->isOp()), $player->getEffectivePermissions());
+		$perms = array_merge(PermissionManager::getInstance()->getDefaultPermissions($player->isOp()), $player->getEffectivePermissions());
 		$perms = array_filter($perms, function($name) {
 			return (substr($name, 0, 18) === "myplot.claimplots.");
 		}, ARRAY_FILTER_USE_KEY);
