@@ -45,12 +45,13 @@ class RemoveHelperSubCommand extends SubCommand
 			$sender->sendMessage(TextFormat::RED . $this->translateString("error"));
 			return true;
 		}
-		if(!$plot->removeHelper($helper)) {
-			$sender->sendMessage(TextFormat::RED . $this->translateString("removehelper.notone", [$helper]));
+		$helper = $this->getPlugin()->getServer()->getPlayer($helper) ?? $this->getPlugin()->getServer()->getOfflinePlayer($helper);
+		if(!$plot->removeHelper($helper->getName())) {
+			$sender->sendMessage(TextFormat::RED . $this->translateString("removehelper.notone", [$helper->getName()]));
 			return true;
 		}
 		if($this->getPlugin()->savePlot($plot)) {
-			$sender->sendMessage($this->translateString("removehelper.success", [$helper]));
+			$sender->sendMessage($this->translateString("removehelper.success", [$helper->getName()]));
 		}else{
 			$sender->sendMessage(TextFormat::RED . $this->translateString("error"));
 		}
